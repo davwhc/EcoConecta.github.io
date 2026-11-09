@@ -1,0 +1,895 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-slate-900">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoConecta - Protótipo de Aplicativo Reciclável</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbars for realistic app feel */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Device frame animations */
+        .device-transition {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Pulse glow for eco points */
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(16, 185, 129, 0.8); }
+        }
+        .eco-glow {
+            animation: pulseGlow 3s infinite;
+        }
+    </style>
+</head>
+<body class="h-full font-sans antialiased text-slate-100 flex flex-col justify-between overflow-x-hidden bg-slate-950">
+
+    <!-- Control Bar Header (Outside Smartphone) -->
+    <header class="w-full bg-slate-900/80 backdrop-blur border-b border-slate-800 p-4 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-slate-950 font-bold shadow-lg shadow-brand-500/20">
+                    <i data-lucide="leaf" class="w-6 h-6 stroke-[2.5]"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg text-white flex items-center gap-2">
+                        EcoConecta <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-500/20 text-brand-400 border border-brand-500/30">Protótipo Interativo</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Transformando resíduos em impacto positivo social e ambiental</p>
+                </div>
+            </div>
+
+            <!-- Frame Customization Toolbar -->
+            <div class="flex flex-wrap items-center gap-2 bg-slate-800/80 p-1.5 rounded-2xl border border-slate-700/60 text-xs">
+                <!-- Device Frame Switcher -->
+                <button onclick="setDeviceStyle('ios')" id="btn-ios" class="px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 bg-slate-700 text-white transition-all">
+                    <i data-lucide="smartphone" class="w-4 h-4"></i> iPhone
+                </button>
+                <button onclick="setDeviceStyle('android')" id="btn-android" class="px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 text-slate-400 hover:text-white transition-all">
+                    <i data-lucide="tablet" class="w-4 h-4"></i> Android
+                </button>
+
+                <div class="h-4 w-px bg-slate-700 my-auto"></div>
+
+                <!-- App Theme Switcher -->
+                <button onclick="toggleAppTheme()" id="btn-theme" class="px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 text-slate-300 hover:bg-slate-700/50 transition-all">
+                    <i data-lucide="sun" id="theme-icon" class="w-4 h-4 text-amber-400"></i> Modo Claro
+                </button>
+
+                <div class="h-4 w-px bg-slate-700 my-auto"></div>
+
+                <!-- Simulation Trigger Actions -->
+                <button onclick="openScannerModal()" class="px-3 py-1.5 rounded-xl font-medium bg-brand-600 hover:bg-brand-500 text-white flex items-center gap-1.5 shadow-md shadow-brand-600/30 transition-all active:scale-95">
+                    <i data-lucide="qr-code" class="w-4 h-4"></i> Escanear QR
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Interactive Playground Area -->
+    <main class="flex-1 flex items-center justify-center p-4 my-4 relative">
+        <!-- Background Ambient Lights -->
+        <div class="absolute w-96 h-96 bg-brand-500/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+        <div class="absolute w-80 h-80 bg-teal-500/10 rounded-full blur-3xl -z-10 pointer-events-none translate-x-32 translate-y-20"></div>
+
+        <!-- SMARTPHONE DEVICE CONTAINER FRAME -->
+        <div id="phone-frame" class="device-transition relative w-full max-w-[390px] h-[800px] bg-slate-900 rounded-[50px] p-3 shadow-2xl shadow-slate-950 border-4 border-slate-700/80 ring-1 ring-slate-600/50 flex flex-col justify-between select-none">
+            
+            <!-- Side Hardware Buttons Mock -->
+            <div class="absolute -left-[7px] top-28 w-[3px] h-10 bg-slate-700 rounded-l-md"></div>
+            <div class="absolute -left-[7px] top-42 w-[3px] h-12 bg-slate-700 rounded-l-md"></div>
+            <div class="absolute -left-[7px] top-58 w-[3px] h-12 bg-slate-700 rounded-l-md"></div>
+            <div class="absolute -right-[7px] top-36 w-[3px] h-16 bg-slate-700 rounded-r-md"></div>
+
+            <!-- INNER SMARTPHONE SCREEN CONTAINER -->
+            <div id="app-screen" class="relative w-full h-full bg-slate-900 text-slate-100 rounded-[40px] overflow-hidden flex flex-col border border-slate-800 transition-colors duration-300">
+                
+                <!-- Status Bar Top (Time, Dynamic Island / Notch, Wifi & Battery) -->
+                <div class="w-full pt-3 px-6 pb-2 flex items-center justify-between z-30 text-xs font-semibold select-none">
+                    <span id="clock" class="w-12 text-center">09:41</span>
+                    
+                    <!-- Dynamic Island / Notch Element -->
+                    <div id="notch-element" class="w-28 h-5 bg-black rounded-full flex items-center justify-end px-2 gap-1.5 transition-all duration-300">
+                        <div class="w-2 h-2 rounded-full bg-emerald-500/40 animate-pulse"></div>
+                        <div class="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-700"></div>
+                    </div>
+
+                    <div class="flex items-center gap-1.5 w-12 justify-end">
+                        <i data-lucide="signal" class="w-3.5 h-3.5"></i>
+                        <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
+                        <i data-lucide="battery-charging" class="w-3.5 h-3.5 text-brand-400"></i>
+                    </div>
+                </div>
+
+                <!-- EcoConecta App Internal Header -->
+                <nav class="px-5 py-2.5 flex items-center justify-between z-20 border-b border-slate-800/60 dark:border-slate-800 transition-colors">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center text-slate-950 font-extrabold shadow-sm">
+                            <i data-lucide="leaf" class="w-5 h-5 fill-slate-950 stroke-none"></i>
+                        </div>
+                        <div>
+                            <span class="font-extrabold tracking-tight text-base block leading-none">EcoConecta</span>
+                            <span class="text-[9px] font-medium text-brand-400 uppercase tracking-widest">Salvador, BA</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Top Actions: Eco-Points & Bell -->
+                    <div class="flex items-center gap-2">
+                        <div onclick="switchTab('recompensas')" class="cursor-pointer bg-brand-500/10 hover:bg-brand-500/20 border border-brand-500/30 text-brand-400 px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all">
+                            <i data-lucide="coins" class="w-3.5 h-3.5 text-amber-400"></i>
+                            <span id="user-points-badge">10.000</span>
+                        </div>
+                        <button onclick="showToast('Nenhuma notificação nova no momento.')" class="p-1.5 rounded-full hover:bg-slate-800 text-slate-400 hover:text-white transition-colors relative">
+                            <i data-lucide="bell" class="w-4 h-4"></i>
+                            <span class="absolute top-1 right-1 w-2 h-2 bg-brand-500 rounded-full"></span>
+                        </button>
+                    </div>
+                </nav>
+
+                <!-- APP MAIN DISPLAY CONTENT (Tab Views Container) -->
+                <div class="flex-1 overflow-y-auto no-scrollbar relative p-4 space-y-4" id="app-content-body">
+                    
+                    <!-- TAB 1: INÍCIO (HOME DASHBOARD) -->
+                    <div id="tab-inicio" class="tab-content space-y-4">
+                        
+                        <!-- Eco Impact Card Summary -->
+                        <div class="bg-gradient-to-br from-brand-900/60 via-slate-800/80 to-slate-900 border border-brand-500/30 rounded-2xl p-4 shadow-lg relative overflow-hidden eco-glow">
+                            <div class="absolute -right-6 -bottom-6 opacity-10 text-brand-400">
+                                <i data-lucide="recycle" class="w-36 h-36"></i>
+                            </div>
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <p class="text-xs text-brand-300 font-medium">Seu Impacto Sustentável</p>
+                                    <h3 class="text-lg font-bold text-white">Excelente progresso! 🌱</h3>
+                                </div>
+                                <span class="text-[10px] bg-brand-500/20 text-brand-300 border border-brand-500/40 px-2 py-0.5 rounded-full">Nível 4</span>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-2 mt-2 pt-2 border-t border-slate-700/50 text-center">
+                                <div class="bg-slate-800/60 p-2 rounded-xl border border-slate-700/50">
+                                    <p class="text-xs text-slate-400">Reciclado</p>
+                                    <p class="text-sm font-bold text-emerald-400" id="total-kg">48.5 kg</p>
+                                </div>
+                                <div class="bg-slate-800/60 p-2 rounded-xl border border-slate-700/50">
+                                    <p class="text-xs text-slate-400">CO² Evitado</p>
+                                    <p class="text-sm font-bold text-teal-300" id="total-co2">112 kg</p>
+                                </div>
+                                <div class="bg-slate-800/60 p-2 rounded-xl border border-slate-700/50">
+                                    <p class="text-xs text-slate-400">EcoPontos</p>
+                                    <p class="text-sm font-bold text-amber-400" id="dash-points">1.250</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Action Buttons Grid -->
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="switchTab('agendar')" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 transition-all text-center group">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform">
+                                    <i data-lucide="truck" class="w-5 h-5"></i>
+                                </div>
+                                <span class="text-xs font-semibold text-slate-200">Agendar Coleta</span>
+                            </button>
+
+                            <button onclick="switchTab('pontos')" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 transition-all text-center group">
+                                <div class="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform">
+                                    <i data-lucide="map-pin" class="w-5 h-5"></i>
+                                </div>
+                                <span class="text-xs font-semibold text-slate-200">Pontos Próximos</span>
+                            </button>
+
+                            <button onclick="openScannerModal()" class="flex flex-col items-center justify-center p-3 rounded-2xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 transition-all text-center group">
+                                <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center mb-1.5 group-hover:scale-110 transition-transform">
+                                    <i data-lucide="qr-code" class="w-5 h-5"></i>
+                                </div>
+                                <span class="text-xs font-semibold text-slate-200">Validar QR</span>
+                            </button>
+                        </div>
+
+                        <!-- Daily Eco Tip Banner -->
+                        <div class="p-3 bg-teal-950/40 border border-teal-800/50 rounded-2xl flex items-center gap-3">
+                            <div class="p-2 rounded-xl bg-teal-500/20 text-teal-400 shrink-0">
+                                <i data-lucide="lightbulb" class="w-5 h-5"></i>
+                            </div>
+                            <div class="text-xs">
+                                <p class="font-semibold text-teal-300">Dica Ecológica do Dia</p>
+                                <p class="text-slate-300 text-[11px] leading-tight">Lave embalagens PET e caixas de leite antes de descartar. Reciclagem limpa vale +20% em pontos!</p>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity Log -->
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center px-1">
+                                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Histórico Recente</h4>
+                                <span class="text-[11px] text-brand-400 cursor-pointer hover:underline" onclick="showToast('Exibindo todo o histórico.')">Ver tudo</span>
+                            </div>
+
+                            <div class="space-y-2" id="history-list">
+                                <div class="p-2.5 rounded-xl bg-slate-800/50 border border-slate-800 flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center">
+                                            <i data-lucide="box" class="w-4 h-4"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-bold text-slate-200">Plástico & Vidro (PEAD)</p>
+                                            <p class="text-[10px] text-slate-400">Ontem às 14:30 • Ponto Barra</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs font-bold text-emerald-400">+120 pts</span>
+                                </div>
+
+                                <div class="p-2.5 rounded-xl bg-slate-800/50 border border-slate-800 flex items-center justify-between">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                                            <i data-lucide="cpu" class="w-4 h-4"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-bold text-slate-200">Lixo Eletrônico (Baterias)</p>
+                                            <p class="text-[10px] text-slate-400">10 de Out • Coleta Agendada</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-xs font-bold text-emerald-400">+300 pts</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- TAB 2: PONTOS DE DESCARTE (MAP & LIST) -->
+                    <div id="tab-pontos" class="tab-content hidden space-y-3">
+                        <div class="space-y-2">
+                            <h3 class="text-base font-bold text-white">Pontos de Coleta Próximos</h3>
+                            
+                            <!-- Search & Filter Bar -->
+                            <div class="relative">
+                                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
+                                <input type="text" id="search-location" oninput="filterPoints()" placeholder="Buscar por bairro ou material..." class="w-full bg-slate-800/90 border border-slate-700 text-xs rounded-xl pl-9 pr-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500">
+                            </div>
+
+                            <!-- Filter Badges Horizontal Scroll -->
+                            <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 text-xs">
+                                <button onclick="toggleFilter('todos', this)" class="filter-btn active px-3 py-1 rounded-full bg-brand-500 text-slate-950 font-bold shrink-0">Todos</button>
+                                <button onclick="toggleFilter('Plástico', this)" class="filter-btn px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:border-brand-500/50 shrink-0">Plástico</button>
+                                <button onclick="toggleFilter('Eletrônicos', this)" class="filter-btn px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:border-brand-500/50 shrink-0">Eletrônicos</button>
+                                <button onclick="toggleFilter('Vidro', this)" class="filter-btn px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:border-brand-500/50 shrink-0">Vidro</button>
+                                <button onclick="toggleFilter('Óleo', this)" class="filter-btn px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:border-brand-500/50 shrink-0">Óleo</button>
+                            </div>
+                        </div>
+
+                        <!-- Simulated Interactive Map Preview -->
+                        <div class="relative w-full h-36 bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 group flex items-center justify-center">
+                            <div class="absolute inset-0 bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:16px_16px] opacity-40"></div>
+                            <!-- Mock Pins -->
+                            <div class="absolute left-1/4 top-1/3 animate-bounce text-brand-400 cursor-pointer" onclick="showToast('Ecoponto Pelourinho - 1.2 km')">
+                                <i data-lucide="map-pin" class="w-7 h-7 fill-brand-500 text-slate-950"></i>
+                            </div>
+                            <div class="absolute right-1/3 bottom-1/4 text-teal-400 cursor-pointer hover:scale-125 transition-transform" onclick="showToast('Estação Recicla Pituba - 2.8 km')">
+                                <i data-lucide="map-pin" class="w-6 h-6 fill-teal-500 text-slate-950"></i>
+                            </div>
+                            <div class="absolute right-12 top-8 text-amber-400 cursor-pointer hover:scale-125 transition-transform" onclick="showToast('Ponto Óleo Limpo Rio Vermelho - 3.5 km')">
+                                <i data-lucide="map-pin" class="w-6 h-6 fill-amber-500 text-slate-950"></i>
+                            </div>
+
+                            <span class="bg-slate-900/90 text-xs px-3 py-1.5 rounded-full border border-slate-700 text-slate-300 backdrop-blur z-10 flex items-center gap-1.5 pointer-events-none">
+                                <i data-lucide="navigation" class="w-3.5 h-3.5 text-brand-400"></i> Salvador - Raio 5km
+                            </span>
+                        </div>
+
+                        <!-- List of Collection Points -->
+                        <div class="space-y-2" id="points-container">
+                            <!-- Card 1 -->
+                            <div class="point-card p-3 rounded-2xl bg-slate-800/60 border border-slate-700/60 space-y-2" data-category="Plástico Vidro">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="text-xs font-bold text-white flex items-center gap-1">
+                                            Ecoponto Central Pelourinho 
+                                            <i data-lucide="badge-check" class="w-3.5 h-3.5 text-brand-400"></i>
+                                        </h4>
+                                        <p class="text-[11px] text-slate-400">Rua Gregório de Mattos, 42 - Centro</p>
+                                    </div>
+                                    <span class="text-[10px] bg-emerald-500/20 text-emerald-300 font-semibold px-2 py-0.5 rounded-full">Aberto agora</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-[10px] text-slate-300 flex-wrap">
+                                    <span class="bg-slate-700/50 px-2 py-0.5 rounded">Plástico</span>
+                                    <span class="bg-slate-700/50 px-2 py-0.5 rounded">Vidro</span>
+                                    <span class="bg-slate-700/50 px-2 py-0.5 rounded">Papel</span>
+                                    <span class="text-amber-400 ml-auto font-bold">★ 4.9 (128)</span>
+                                </div>
+                                <div class="pt-2 border-t border-slate-700/40 flex items-center justify-between">
+                                    <span class="text-[11px] text-slate-400"><i data-lucide="navigation" class="w-3 h-3 inline"></i> 1.2 km de você</span>
+                                    <button onclick="showToast('Rota para Pelourinho traçada no GPS!')" class="px-2.5 py-1 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-medium flex items-center gap-1">
+                                        Como Chegar
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Card 2 -->
+                            <div class="point-card p-3 rounded-2xl bg-slate-800/60 border border-slate-700/60 space-y-2" data-category="Eletrônicos Óleo">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h4 class="text-xs font-bold text-white">Estação E-Lixo Pituba</h4>
+                                        <p class="text-[11px] text-slate-400">Av. Paulo VI, 1120 - Pituba</p>
+                                    </div>
+                                    <span class="text-[10px] bg-amber-500/20 text-amber-300 font-semibold px-2 py-0.5 rounded-full">Fecha às 18h</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-[10px] text-slate-300 flex-wrap">
+                                    <span class="bg-slate-700/50 px-2 py-0.5 rounded">Eletrônicos</span>
+                                    <span class="bg-slate-700/50 px-2 py-0.5 rounded">Baterias</span>
+                                    <span class="bg-slate-700/50 px-2 py-0.5 rounded">Óleo de Fritura</span>
+                                    <span class="text-amber-400 ml-auto font-bold">★ 4.8 (94)</span>
+                                </div>
+                                <div class="pt-2 border-t border-slate-700/40 flex items-center justify-between">
+                                    <span class="text-[11px] text-slate-400"><i data-lucide="navigation" class="w-3 h-3 inline"></i> 2.8 km de você</span>
+                                    <button onclick="showToast('Rota para Pituba traçada!')" class="px-2.5 py-1 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-xs font-medium flex items-center gap-1">
+                                        Como Chegar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 3: AGENDAR COLETA (MULTI-STEP FORM) -->
+                    <div id="tab-agendar" class="tab-content hidden space-y-3">
+                        <div>
+                            <h3 class="text-base font-bold text-white">Agendar Coleta em Casa</h3>
+                            <p class="text-xs text-slate-400">Coletamos seus recicláveis diretamente na sua porta.</p>
+                        </div>
+
+                        <!-- Interactive Scheduling Form -->
+                        <form id="schedule-form" onsubmit="handleScheduleSubmit(event)" class="space-y-3 bg-slate-800/40 p-3.5 rounded-2xl border border-slate-700/60">
+                            <!-- Select Material Type -->
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Qual o tipo de resíduo?</label>
+                                <div class="grid grid-cols-2 gap-2 text-xs">
+                                    <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-800 border border-slate-700 cursor-pointer hover:border-brand-500">
+                                        <input type="checkbox" name="waste-type" value="Plástico" class="accent-brand-500">
+                                        <span>Plásticos / PET</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-800 border border-slate-700 cursor-pointer hover:border-brand-500">
+                                        <input type="checkbox" name="waste-type" value="Papel" class="accent-brand-500">
+                                        <span>Papel e Papelão</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-800 border border-slate-700 cursor-pointer hover:border-brand-500">
+                                        <input type="checkbox" name="waste-type" value="Eletronico" class="accent-brand-500">
+                                        <span>Eletrônicos</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2 rounded-xl bg-slate-800 border border-slate-700 cursor-pointer hover:border-brand-500">
+                                        <input type="checkbox" name="waste-type" value="Oleo" class="accent-brand-500">
+                                        <span>Óleo Usado</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Address Input -->
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Endereço de Retirada</label>
+                                <input type="text" required value="Av. Sete de Setembro, 1420 - Apt 302" class="w-full bg-slate-800 border border-slate-700 text-xs rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-brand-500">
+                            </div>
+
+                            <!-- Date & Time Row -->
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">Data Preferencial</label>
+                                    <input type="date" required value="2026-10-15" class="w-full bg-slate-800 border border-slate-700 text-xs rounded-xl px-2.5 py-2 text-slate-100 focus:outline-none focus:border-brand-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-300 mb-1">Turno</label>
+                                    <select class="w-full bg-slate-800 border border-slate-700 text-xs rounded-xl px-2.5 py-2 text-slate-100 focus:outline-none focus:border-brand-500">
+                                        <option>Manhã (08h - 12h)</option>
+                                        <option>Tarde (13h - 17h)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Estimated Weight -->
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Estimativa de Volume</label>
+                                <select class="w-full bg-slate-800 border border-slate-700 text-xs rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-brand-500">
+                                    <option>Pequeno (1 a 2 sacolas)</option>
+                                    <option selected>Médio (3 a 5 sacolas)</option>
+                                    <option>Grande (Caixas grandes / Eletros)</option>
+                                </select>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-brand-600 to-emerald-500 hover:from-brand-500 hover:to-emerald-400 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-brand-500/20 transition-all active:scale-98">
+                                <i data-lucide="check-circle" class="w-4 h-4"></i> Confirmar Agendamento (+50 pts)
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- TAB 4: RECOMPENSAS & RESGATE (ECO-STORE) -->
+                    <div id="tab-recompensas" class="tab-content hidden space-y-3">
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <h3 class="text-base font-bold text-white">Loja de Recompensas</h3>
+                                <p class="text-xs text-slate-400">Troque seus EcoPontos por benefícios reais</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[10px] text-slate-400 block">Saldo Atual</span>
+                                <span class="text-sm font-extrabold text-amber-400 flex items-center gap-1 justify-end">
+                                    <i data-lucide="coins" class="w-3.5 h-3.5"></i> <span id="rewards-points-display">1.250</span> pts
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Rewards Catalogue Grid -->
+                        <div class="grid grid-cols-2 gap-2.5">
+                            
+                            <!-- Reward Item 1 -->
+                            <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-3 flex flex-col justify-between space-y-2">
+                                <div class="w-full h-20 bg-emerald-950/60 rounded-xl flex items-center justify-center text-brand-400 relative overflow-hidden">
+                                    <i data-lucide="ticket" class="w-10 h-10"></i>
+                                    <span class="absolute top-1.5 right-1.5 bg-brand-500 text-slate-950 text-[9px] font-bold px-1.5 py-0.5 rounded-md">Popular</span>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-bold text-white">R$ 15 no Supermercado</h4>
+                                    <p class="text-[10px] text-slate-400">Voucher para compras sustentáveis</p>
+                                </div>
+                                <div class="pt-1 flex items-center justify-between">
+                                    <span class="text-xs font-bold text-amber-400">500 pts</span>
+                                    <button onclick="redeemReward('R$ 15 Supermercado', 500)" class="px-2 py-1 bg-brand-600 hover:bg-brand-500 text-white text-[11px] font-medium rounded-lg">
+                                        Resgatar
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Reward Item 2 -->
+                            <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-3 flex flex-col justify-between space-y-2">
+                                <div class="w-full h-20 bg-blue-950/60 rounded-xl flex items-center justify-center text-blue-400 relative overflow-hidden">
+                                    <i data-lucide="bus" class="w-10 h-10"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-bold text-white">Crédito de Transporte</h4>
+                                    <p class="text-[10px] text-slate-400">2 passagens de Ônibus / Metrô</p>
+                                </div>
+                                <div class="pt-1 flex items-center justify-between">
+                                    <span class="text-xs font-bold text-amber-400">400 pts</span>
+                                    <button onclick="redeemReward('Crédito Transporte', 400)" class="px-2 py-1 bg-brand-600 hover:bg-brand-500 text-white text-[11px] font-medium rounded-lg">
+                                        Resgatar
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Reward Item 3 -->
+                            <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-3 flex flex-col justify-between space-y-2">
+                                <div class="w-full h-20 bg-teal-950/60 rounded-xl flex items-center justify-center text-teal-400 relative overflow-hidden">
+                                    <i data-lucide="trees" class="w-10 h-10"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-bold text-white">Plante 1 Árvore Nativa</h4>
+                                    <p class="text-[10px] text-slate-400">Certificado na Mata Atlântica</p>
+                                </div>
+                                <div class="pt-1 flex items-center justify-between">
+                                    <span class="text-xs font-bold text-amber-400">800 pts</span>
+                                    <button onclick="redeemReward('Plantio de Árvore', 800)" class="px-2 py-1 bg-brand-600 hover:bg-brand-500 text-white text-[11px] font-medium rounded-lg">
+                                        Resgatar
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Reward Item 4 -->
+                            <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-3 flex flex-col justify-between space-y-2">
+                                <div class="w-full h-20 bg-amber-950/60 rounded-xl flex items-center justify-center text-amber-400 relative overflow-hidden">
+                                    <i data-lucide="cup-soda" class="w-10 h-10"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-bold text-white">Copo Eco Reutilizável</h4>
+                                    <p class="text-[10px] text-slate-400">Retirada nos postos parceiros</p>
+                                </div>
+                                <div class="pt-1 flex items-center justify-between">
+                                    <span class="text-xs font-bold text-amber-400">1.000 pts</span>
+                                    <button onclick="redeemReward('Copo Eco Reutilizável', 1000)" class="px-2 py-1 bg-brand-600 hover:bg-brand-500 text-white text-[11px] font-medium rounded-lg">
+                                        Resgatar
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- TAB 5: PERFIL & CONQUISTAS -->
+                    <div id="tab-perfil" class="tab-content hidden space-y-3">
+                        
+                        <!-- User Profile Card -->
+                        <div class="bg-slate-800/60 border border-slate-700/60 p-4 rounded-2xl text-center space-y-2">
+                            <div class="relative w-16 h-16 mx-auto">
+                                <img src="https://s2-g1.glbimg.com/sZ6ykG9Mg6jxzSYZmUTsg75LIVI=/0x0:505x596/984x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_59edd422c0c84a879bd37670ae4f538a/internal_photos/bs/2024/H/b/gBrA0FSOa5I5ahMWEkTQ/whatsapp-image-2024-04-09-at-17.54.07.jpeg" alt="Foto de Perfil" class="w-full h-full rounded-full object-cover border-2 border-brand-500">
+                                <div class="absolute bottom-0 right-0 w-5 h-5 bg-brand-500 rounded-full flex items-center justify-center text-slate-950 text-[10px] font-bold">
+                                    <i data-lucide="check" class="w-3 h-3 stroke-[3]"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-white">Davi Machado</h3>
+                                <p class="text-xs text-brand-400 font-medium">The King • Nível 99</p>
+                            </div>
+
+                            <!-- Level Progress Bar -->
+                            <div class="space-y-1 pt-1">
+                                <div class="flex justify-between text-[10px] text-slate-400">
+                                    <span>Nível 99 (15.000 pts)</span>
+                                    <span>Próximo: Nível 101 (16.000 pts)</span>
+                                </div>
+                                <div class="w-full h-2 bg-slate-700 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-brand-500 to-emerald-300 w-[62%] rounded-full"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Achievements / Badges Grid -->
+                        <div class="space-y-2">
+                            <h4 class="text-xs font-bold text-slate-300">Suas Conquistas</h4>
+                            
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="p-2.5 bg-slate-800/40 border border-slate-700/50 rounded-xl flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                                        <i data-lucide="award" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-200 leading-tight">Reciclador Elite</p>
+                                        <p class="text-[9px] text-slate-400">+50kg reciclados</p>
+                                    </div>
+                                </div>
+
+                                <div class="p-2.5 bg-slate-800/40 border border-slate-700/50 rounded-xl flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                                        <i data-lucide="zap" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-200 leading-tight">Zero E-Lixo</p>
+                                        <p class="text-[9px] text-slate-400">5 descarte baterias</p>
+                                    </div>
+                                </div>
+
+                                <div class="p-2.5 bg-slate-800/40 border border-slate-700/50 rounded-xl flex items-center gap-2 opacity-60">
+                                    <div class="w-8 h-8 rounded-lg bg-slate-700 text-slate-400 flex items-center justify-center shrink-0">
+                                        <i data-lucide="lock" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-300 leading-tight">Guardião da Água</p>
+                                        <p class="text-[9px] text-slate-400">Reciclar 10L óleo</p>
+                                    </div>
+                                </div>
+
+                                <div class="p-2.5 bg-slate-800/40 border border-slate-700/50 rounded-xl flex items-center gap-2 opacity-60">
+                                    <div class="w-8 h-8 rounded-lg bg-slate-700 text-slate-400 flex items-center justify-center shrink-0">
+                                        <i data-lucide="lock" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-300 leading-tight">Embaixador Eco</p>
+                                        <p class="text-[9px] text-slate-400">Convidar 5 amigos</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Environmental Impact Certificate Button -->
+                        <button onclick="downloadCertificate()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 border border-brand-500/30 text-brand-400 font-semibold rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
+                            <i data-lucide="file-badge" class="w-4 h-4"></i> Gerar Certificado de Impacto ESG
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <!-- BOTTOM NAVIGATION BAR -->
+                <nav class="w-full bg-slate-900/95 backdrop-blur border-t border-slate-800 px-2 py-2 flex items-center justify-around z-20">
+                    <button onclick="switchTab('inicio')" id="nav-inicio" class="nav-btn active flex flex-col items-center gap-0.5 text-brand-400 transition-colors">
+                        <i data-lucide="home" class="w-5 h-5"></i>
+                        <span class="text-[10px] font-medium">Início</span>
+                    </button>
+                    <button onclick="switchTab('pontos')" id="nav-pontos" class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition-colors">
+                        <i data-lucide="map-pin" class="w-5 h-5"></i>
+                        <span class="text-[10px] font-medium">Pontos</span>
+                    </button>
+                    <!-- Floating Center Scan Button -->
+                    <button onclick="openScannerModal()" class="flex flex-col items-center -mt-5">
+                        <div class="w-11 h-11 rounded-full bg-brand-500 hover:bg-brand-400 text-slate-950 flex items-center justify-center shadow-lg shadow-brand-500/40 border-2 border-slate-900 transition-transform active:scale-90">
+                            <i data-lucide="qr-code" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-[9px] font-semibold text-brand-400 mt-0.5">Escanear</span>
+                    </button>
+                    <button onclick="switchTab('recompensas')" id="nav-recompensas" class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition-colors">
+                        <i data-lucide="gift" class="w-5 h-5"></i>
+                        <span class="text-[10px] font-medium">Premios</span>
+                    </button>
+                    <button onclick="switchTab('perfil')" id="nav-perfil" class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200 transition-colors">
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                        <span class="text-[10px] font-medium">Perfil</span>
+                    </button>
+                </nav>
+
+                <!-- Phone Bottom Home Bar Indicator -->
+                <div class="w-full pb-2 pt-1 bg-slate-900 flex justify-center items-center">
+                    <div id="home-indicator" class="w-32 h-1 bg-slate-600 rounded-full"></div>
+                </div>
+
+                <!-- Toast Notification Overlay (Inside Phone Display) -->
+                <div id="toast-notification" class="absolute top-12 left-4 right-4 bg-slate-800/95 border border-brand-500/50 text-white p-3 rounded-xl shadow-2xl backdrop-blur flex items-center gap-3 transition-all duration-300 -translate-y-24 opacity-0 pointer-events-none z-50">
+                    <div id="toast-icon-bg" class="w-8 h-8 rounded-lg bg-brand-500/20 text-brand-400 flex items-center justify-center shrink-0">
+                        <i data-lucide="check-circle" class="w-5 h-5"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p id="toast-message" class="text-xs font-medium leading-tight">Ação concluída com sucesso!</p>
+                    </div>
+                </div>
+
+                <!-- SIMULATED QR SCANNER MODAL -->
+                <div id="qr-modal" class="absolute inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex flex-col items-center justify-between p-6 opacity-0 pointer-events-none transition-opacity duration-300">
+                    <div class="w-full flex justify-between items-center text-white pt-6">
+                        <h3 class="text-sm font-bold flex items-center gap-2">
+                            <i data-lucide="qr-code" class="w-4 h-4 text-brand-400"></i> Validar Ecoponto
+                        </h3>
+                        <button onclick="closeScannerModal()" class="p-1 rounded-full bg-slate-800 text-slate-400 hover:text-white">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Camera Viewfinder Simulation -->
+                    <div class="relative w-56 h-56 border-2 border-dashed border-brand-500 rounded-3xl flex items-center justify-center overflow-hidden bg-slate-900/80">
+                        <div class="absolute inset-x-0 h-0.5 bg-brand-400 shadow-[0_0_15px_#10b981] animate-pulse top-1/2"></div>
+                        <i data-lucide="camera" class="w-12 h-12 text-slate-700"></i>
+                        <p class="absolute bottom-3 text-[10px] text-slate-400">Aponta para o QR Code da estação</p>
+                    </div>
+
+                    <div class="w-full space-y-2 text-center pb-4">
+                        <p class="text-xs text-slate-300">Simular escaneamento em totem reciclável:</p>
+                        <button onclick="simulateScanSuccess()" class="w-full py-2.5 bg-brand-500 hover:bg-brand-400 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition-all">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i> Escanear e Ganhar +150 pts
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer info outside frame -->
+    <footer class="text-center py-3 text-slate-500 text-xs">
+        EcoConecta &copy; 2026 - Protótipo conceitual para ecossistema de reciclagem inteligente. 
+        Web Developer Davi Machado,
+        Webdesigner Julio Erick
+    </footer>
+
+    <!-- INTERACTIVE JAVASCRIPT LOGIC -->
+    <script>
+        // State Management
+        let currentPoints = 1250;
+        let totalKgRecycled = 48.5;
+        let totalCo2Saved = 112;
+        let isDarkMode = true;
+
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Real-time Clock Simulator
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('clock').innerText = `${hours}:${minutes}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Switch App Screen Tabs
+        function switchTab(tabId) {
+            // Hide all tab content
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            
+            // Show selected tab content
+            const activeContent = document.getElementById(`tab-${tabId}`);
+            if (activeContent) activeContent.classList.remove('hidden');
+
+            // Update Bottom Nav Button Highlight States
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-brand-400');
+                btn.classList.add('text-slate-400');
+            });
+
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) {
+                activeNav.classList.remove('text-slate-400');
+                activeNav.classList.add('text-brand-400');
+            }
+        }
+
+        // Display Toast Overlay Notification inside the Smartphone
+        function showToast(message) {
+            const toast = document.getElementById('toast-notification');
+            const toastMsg = document.getElementById('toast-message');
+            
+            toastMsg.innerText = message;
+            toast.classList.remove('-translate-y-24', 'opacity-0', 'pointer-events-none');
+            
+            setTimeout(() => {
+                toast.classList.add('-translate-y-24', 'opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+
+        // Device Frame Switcher (iOS vs Android Style)
+        function setDeviceStyle(style) {
+            const frame = document.getElementById('phone-frame');
+            const notch = document.getElementById('notch-element');
+            const btnIos = document.getElementById('btn-ios');
+            const btnAndroid = document.getElementById('btn-android');
+
+            if (style === 'ios') {
+                frame.style.borderRadius = '50px';
+                notch.className = "w-28 h-5 bg-black rounded-full flex items-center justify-end px-2 gap-1.5 transition-all duration-300";
+                
+                btnIos.className = "px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 bg-slate-700 text-white transition-all";
+                btnAndroid.className = "px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 text-slate-400 hover:text-white transition-all";
+            } else {
+                frame.style.borderRadius = '32px';
+                notch.className = "w-4 h-4 bg-black rounded-full flex items-center justify-center transition-all duration-300";
+                
+                btnAndroid.className = "px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 bg-slate-700 text-white transition-all";
+                btnIos.className = "px-3 py-1.5 rounded-xl font-medium flex items-center gap-1.5 text-slate-400 hover:text-white transition-all";
+            }
+        }
+
+        // Toggle Internal App Theme (Light / Dark inside smartphone screen)
+        function toggleAppTheme() {
+            const appScreen = document.getElementById('app-screen');
+            const themeIcon = document.getElementById('theme-icon');
+            const themeBtn = document.getElementById('btn-theme');
+
+            isDarkMode = !isDarkMode;
+
+            if (isDarkMode) {
+                appScreen.classList.remove('bg-slate-100', 'text-slate-900');
+                appScreen.classList.add('bg-slate-900', 'text-slate-100');
+                themeIcon.setAttribute('data-lucide', 'sun');
+                themeBtn.innerHTML = `<i data-lucide="sun" class="w-4 h-4 text-amber-400"></i> Modo Claro`;
+            } else {
+                appScreen.classList.remove('bg-slate-900', 'text-slate-100');
+                appScreen.classList.add('bg-slate-100', 'text-slate-900');
+                themeIcon.setAttribute('data-lucide', 'moon');
+                themeBtn.innerHTML = `<i data-lucide="moon" class="w-4 h-4 text-slate-700"></i> Modo Escuro`;
+            }
+            lucide.createIcons();
+        }
+
+        // Handle Schedule Pickup Form Submission
+        function handleScheduleSubmit(event) {
+            event.preventDefault();
+            addPoints(50);
+            showToast("Coleta agendada com sucesso! +50 EcoPontos adicionados.");
+            
+            // Append entry to activity history log dynamically
+            const historyList = document.getElementById('history-list');
+            const newEntry = document.createElement('div');
+            newEntry.className = "p-2.5 rounded-xl bg-slate-800/50 border border-slate-800 flex items-center justify-between";
+            newEntry.innerHTML = `
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                        <i data-lucide="truck" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-200">Coleta Agendada Residencial</p>
+                        <p class="text-[10px] text-slate-400">Hoje • Av. Sete de Setembro</p>
+                    </div>
+                </div>
+                <span class="text-xs font-bold text-emerald-400">+50 pts</span>
+            `;
+            historyList.prepend(newEntry);
+            lucide.createIcons();
+
+            setTimeout(() => switchTab('inicio'), 1200);
+        }
+
+        // Redeem Eco-Store Rewards
+        function redeemReward(title, cost) {
+            if (currentPoints >= cost) {
+                currentPoints -= cost;
+                updatePointsDisplay();
+                showToast(`Recompensa "${title}" resgatada com sucesso!`);
+            } else {
+                showToast("Pontos insuficientes para resgatar esta recompensa.");
+            }
+        }
+
+        // Scanner Modal Control Functions
+        function openScannerModal() {
+            const modal = document.getElementById('qr-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+        }
+
+        function closeScannerModal() {
+            const modal = document.getElementById('qr-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        function simulateScanSuccess() {
+            closeScannerModal();
+            addPoints(150);
+            totalKgRecycled += 3.2;
+            totalCo2Saved += 7.5;
+            
+            document.getElementById('total-kg').innerText = `${totalKgRecycled.toFixed(1)} kg`;
+            document.getElementById('total-co2').innerText = `${Math.round(totalCo2Saved)} kg`;
+
+            showToast("QR Code validado! +150 EcoPontos (+3.2kg reciclados)");
+        }
+
+        // Point Management Helpers
+        function addPoints(pts) {
+            currentPoints += pts;
+            updatePointsDisplay();
+        }
+
+        function updatePointsDisplay() {
+            document.getElementById('user-points-badge').innerText = currentPoints.toLocaleString('pt-BR');
+            document.getElementById('dash-points').innerText = currentPoints.toLocaleString('pt-BR');
+            document.getElementById('rewards-points-display').innerText = currentPoints.toLocaleString('pt-BR');
+        }
+
+        // Filter Collection Points List
+        function toggleFilter(category, btnElement) {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.className = "filter-btn px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:border-brand-500/50 shrink-0";
+            });
+            btnElement.className = "filter-btn active px-3 py-1 rounded-full bg-brand-500 text-slate-950 font-bold shrink-0";
+
+            const cards = document.querySelectorAll('.point-card');
+            cards.forEach(card => {
+                const cardCat = card.getAttribute('data-category');
+                if (category === 'todos' || cardCat.includes(category)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function filterPoints() {
+            const query = document.getElementById('search-location').value.toLowerCase();
+            const cards = document.querySelectorAll('.point-card');
+            cards.forEach(card => {
+                const text = card.innerText.toLowerCase();
+                card.style.display = text.includes(query) ? 'block' : 'none';
+            });
+        }
+
+        // Certificate Generator Simulation
+        function downloadCertificate() {
+            showToast("Certificado de Impacto ESG de Davi Machado gerado em PDF!");
+        }
+    </script>
+</body>
+</html>
